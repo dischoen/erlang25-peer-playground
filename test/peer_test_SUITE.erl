@@ -1,7 +1,18 @@
 -module(peer_test_SUITE).
 -behaviour(ct_suite).
 -export([all/0]).
--export([t1/1, t2/1, t3/1, t4/1, t5/1, t6/1,
+-export([
+         origin_is_not_alive/1, 
+         origin_is_short/1,
+         origin_is_long/1,
+         origin_is_long_name/1,
+         origin_is_long_name_host/1,
+         long_and_host/1, 
+         long_full/1, 
+         default_exec_ssh/1,
+         origin_short_default_exec_ssh/1,
+         origin_short_default_exec_ssh_name/1,
+
          init_per_testcase/2,
          end_per_testcase/2]).
 
@@ -9,7 +20,16 @@
 
 all() ->
     [
-     t1, t2, t4, t5, t6
+     origin_is_not_alive, 
+     origin_is_short,
+     %%origin_is_long,
+     origin_is_long_name,
+     origin_is_long_name_host,
+     long_and_host,
+     long_full, 
+     default_exec_ssh,
+     origin_short_default_exec_ssh,
+     origin_short_default_exec_ssh_name
     ].
 
 init_per_testcase(_TestCase, Config) ->
@@ -22,36 +42,67 @@ end_per_testcase(_TestCase, Config) ->
     false = is_alive(),
     Config.
 
-t1(Config) when is_list(Config) ->
-     try   peer:start_link()
-    catch error:not_alive -> ok
-    end.
+origin_is_not_alive(Config) when is_list(Config) ->
+    peer:start_link().
+    %% error:not_alive
 
-t2(Config) when is_list(Config) ->
+origin_is_short(Config) when is_list(Config) ->
     {ok, _} = net_kernel:start(noob, #{name_domain => shortnames}),
     {ok, _Pid, _Node} = peer:start_link().
+    %% ok
 
-t3(Config) when is_list(Config) ->
+origin_is_long(Config) when is_list(Config) ->
     {ok, _} = net_kernel:start('noob@127.0.0.1', #{name_domain => longnames}),
-    try   peer:start_link()
-    catch exit:timeout -> ok
-    end.
+    peer:start_link().
+    %% exit:timeout
 
-t4(Config) when is_list(Config) ->
+origin_is_long_name(Config) when is_list(Config) ->
     {ok, _} = net_kernel:start('noob@127.0.0.1', #{name_domain => longnames}),
-    try   peer:start_link(#{host => "127.0.0.1"})
-    catch error:not_alive -> ok
-    end.
+    peer:start_link(#{name => sasasa}).
+    %% exit:timeout
 
-t5(Config) when is_list(Config) ->
+origin_is_long_name_host(Config) when is_list(Config) ->
+    {ok, _} = net_kernel:start('noob@127.0.0.1', #{name_domain => longnames}),
+    peer:start_link(#{name => sasasa, host => "127.0.0.1"}).
+    %% exit:timeout
+
+long_and_host(Config) when is_list(Config) ->
+    {ok, _} = net_kernel:start('noob@127.0.0.1', #{name_domain => longnames}),
+    peer:start_link(#{host => "127.0.0.1"}).
+    %% error:not_alive
+
+
+long_full(Config) when is_list(Config) ->
     {ok, _} = net_kernel:start('noob@127.0.0.1', #{name_domain => longnames}),
     {ok, _Pid, _Node} = peer:start_link(#{name => othr, host => "127.0.0.1"}).
+    %% ok
 
-t6(Config) when is_list(Config) ->
+default_exec_ssh(Config) when is_list(Config) ->
     Ssh = os:find_executable("ssh"),
     Erl = os:find_executable("erl"),
-    {ok, _Pid, _Node} = peer:start_link(#{
-                                          exec => {Ssh, ["localhost", Erl]}}).
+    {ok, _Pid, _Node} = peer:start_link(#{exec => {Ssh, ["localhost", Erl]}}).
+
+origin_short_default_exec_ssh(Config) when is_list(Config) ->
+    {ok, _} = net_kernel:start(noob, #{name_domain => shortnames}),
+    true = is_alive(),
+    Ssh = os:find_executable("ssh"),
+    Erl = os:find_executable("erl"),
+    {ok, _Pid, _Node} = peer:start_link(#{exec => {Ssh, ["localhost", Erl]}}).
+    %% from peer source:
+    %% alternative connection must be requested for non-distributed node,
+    %%  or a distributed node when origin is not alive
+    %is_map_key(connection, Options) orelse
+    %                                  (is_map_key(name, Options) andalso erlang:is_alive()) orelse error(not_alive),
+
+    %% error:not_alive
+
+origin_short_default_exec_ssh_name(Config) when is_list(Config) ->
+    {ok, _} = net_kernel:start(noob, #{name_domain => shortnames}),
+    true = is_alive(),
+    Ssh = os:find_executable("ssh"),
+    Erl = os:find_executable("erl"),
+    {ok, _Pid, _Node} = peer:start_link(#{name => nanana, exec => {Ssh, ["localhost", Erl]}}).
+
 
 
 %% io:format(".~p.~p.~n", [A,B])
