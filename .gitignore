@@ -1,0 +1,38 @@
+.rebar3
+_*
+.eunit
+*.o
+*.beam
+*.plt
+*.swp
+*.swo
+.erlang.cookie
+ebin
+log
+erl_crash.dump
+.rebar
+logs
+_build
+.idea
+*.iml
+rebar3.crashdump
+/attic/
+*.pcap
+*~
+\#*\#
+.\#*
+/log*
+TAGS
+rebar.lock
+
+# lexx/yacc output
+apps/patchbox/src/scpi_lexer.erl
+apps/patchbox/src/scpi_parser.erl
+
+apps/patchbox/doc/
+.tool-versions
+_IceTransSocketUNIXConnect: Cannot connect to non-local host ubuntu
+_IceTransSocketUNIXConnect: Cannot connect to non-local host ubuntu
+nohup.out
+apps/mib/doc/
+mibs
